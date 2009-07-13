@@ -1,0 +1,13 @@
+
+.PHONY: clean
+
+CXXFLAGS = -Wall -g -pg
+
+CXXProgram(ba, BA)
+
+clean:
+  rm -f ba *.o *.dat
+
+
+.DEFAULT: ba
+
