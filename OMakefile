@@ -1,7 +1,14 @@
 
 .PHONY: clean
 
-CXXFLAGS = -Wall -g -pg
+if $(defined-env CXXFLAGS)
+  CXXFLAGS = $(getenv CXXFLAGS)
+  export
+else
+  CXXFLAGS = -pg
+  export
+
+CXXFLAGS += -Wall -g
 
 CXXProgram(ba, BA)
 
