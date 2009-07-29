@@ -29,6 +29,9 @@ public:
         cumul_max_size = ((m * (m-1)) / 2 + m * (n - m)) * 2;
         cumul_nodes = new int[cumul_max_size];
     }
+    void free_cumulnodes(){
+        delete[](cumul_nodes);
+    }
 
     void choose_for_small(int m, int * ret, int * degrees/* cache */, int totaldegree){
         int nn = nodenum();
@@ -182,6 +185,7 @@ public:
         }
         delete[](adj_matrix);
         delete[](degree_);
+        free_cumulnodes();
     }
 
     int degree(int i){
@@ -217,6 +221,12 @@ public:
         totaldegree_ = 0;
         degree_ = new int[nodeN];
         adjlists = new set<int>*[nodeN];
+    }
+
+    ~AdjListGraph(){
+        free_cumulnodes();
+        delete[](degree_);
+        delete[](adjlists);
     }
     
     bool is_connected(int i, int j){
