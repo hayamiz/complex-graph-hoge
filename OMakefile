@@ -5,7 +5,7 @@ if $(defined-env CXXFLAGS)
   CXXFLAGS = $(getenv CXXFLAGS)
   export
 else
-  CXXFLAGS = -pg
+  CXXFLAGS = -O0
   export
 
 CXXFLAGS += -Wall -g

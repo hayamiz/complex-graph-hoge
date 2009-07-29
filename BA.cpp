@@ -2,6 +2,7 @@
 #include <exception>
 #include <stdexcept>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <list>
 #include <iostream>
@@ -13,6 +14,8 @@
 using namespace std;
 
 class Graph {
+protected:
+    vector<int> cumul_nodes;
 public:
     virtual bool is_connected(int i, int j) = 0;
     virtual void connect(int i, int j) = 0;
@@ -22,10 +25,12 @@ public:
     virtual int edgenum() = 0;
     virtual int totaldegree() = 0;
     
-    void choose(int m, int * ret, int * degrees/* cache */, int totaldegree){
+    void choose_for_small(int m, int * ret, int * degrees/* cache */, int totaldegree){
         int nn = nodenum();
+        memset(ret, -1, sizeof(int) * m);
         
         if (m > nn){
+            throw logic_error("error : choose : m > nn");
             for(int i = 0;i < nn;i++){
                 ret[i] = i;
             }
@@ -56,6 +61,38 @@ public:
 
             ret[t] = chosen_node;
             totaldegree -= degree(chosen_node);
+        }
+    }
+
+    void choose(int m, int * ret, int * degrees/* cache */, int totaldegree){
+        int nn = nodenum();
+        memset(ret, -1, sizeof(int) * m);
+
+        if (nn < 1000){
+            choose_for_small(m, ret, degrees, totaldegree);
+        } else {
+            for(int t = 0;t < m;t++){
+                int nodeid;
+                int nodeidx;
+                bool chosen;
+                
+                do {
+                    nodeidx = rand() % totaldegree;
+                    nodeid = cumul_nodes[nodeidx];
+                    chosen = false;
+                    for(int j = 0;j < t;j++){
+                        if (nodeid == ret[j]){
+                            chosen = true;
+                            // break;
+                        }
+                    }
+                    if (!chosen){
+                        break;
+                    }
+                }while(true);
+                
+                ret[t] = nodeid;
+            }
         }
     }
 };
@@ -101,6 +138,8 @@ public:
             degree_[j]++;
             totaldegree_ += 2;
             edgenum_++;
+            cumul_nodes.push_back(i);
+            cumul_nodes.push_back(j);
         }
     }
 
@@ -190,6 +229,8 @@ public:
             degree_[j]++;
             degree_[i]++;
             totaldegree_ += 2;
+            cumul_nodes.push_back(i);
+            cumul_nodes.push_back(j);
         }
     }
     
@@ -250,6 +291,15 @@ public:
             degrees[newnode] = m;
         }
         delete[](degrees);
+
+        if (g.nodenum() != nodeN) {
+            cerr << "edge: " << g.nodenum() << endl;
+            throw logic_error("node num error");
+        }
+        if (g.edgenum() != (edgeM * (edgeM - 1)) / 2 + (nodeN - edgeM) * edgeM) {
+            cerr << "edge: " << g.edgenum() << endl;
+            throw logic_error("edge num error");
+        }
     }
 
 
@@ -344,7 +394,8 @@ typedef enum {
 } command_t;
 
 int main(int argc, char ** argv){
-    srand(clock());
+    // srand(0);
+    srand(time(NULL));
 
     if (argc < 4){
         show_help(argv[0]);
