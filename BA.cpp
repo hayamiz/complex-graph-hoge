@@ -6,7 +6,6 @@
 #include <ctime>
 #include <list>
 #include <iostream>
-#include <vector>
 #include <algorithm>
 #include <cmath>
 #include <set>
@@ -15,7 +14,8 @@ using namespace std;
 
 class Graph {
 protected:
-    vector<int> cumul_nodes;
+    int * cumul_nodes;
+    int cumul_max_size;
 public:
     virtual bool is_connected(int i, int j) = 0;
     virtual void connect(int i, int j) = 0;
@@ -24,7 +24,12 @@ public:
     virtual int nodenum() = 0;
     virtual int edgenum() = 0;
     virtual int totaldegree() = 0;
-    
+
+    void init_cumulnodes(int n, int m){
+        cumul_max_size = ((m * (m-1)) / 2 + m * (n - m)) * 2;
+        cumul_nodes = new int[cumul_max_size];
+    }
+
     void choose_for_small(int m, int * ret, int * degrees/* cache */, int totaldegree){
         int nn = nodenum();
         memset(ret, -1, sizeof(int) * m);
@@ -136,10 +141,10 @@ public:
             setadj(i, j, 1);
             degree_[i]++;
             degree_[j]++;
+            cumul_nodes[totaldegree_] = i;
+            cumul_nodes[totaldegree_ + 1] = j;
             totaldegree_ += 2;
             edgenum_++;
-            cumul_nodes.push_back(i);
-            cumul_nodes.push_back(j);
         }
     }
 
@@ -228,9 +233,9 @@ public:
             edgenum_++;
             degree_[j]++;
             degree_[i]++;
+            cumul_nodes[totaldegree_] = i;
+            cumul_nodes[totaldegree_ + 1] = j;
             totaldegree_ += 2;
-            cumul_nodes.push_back(i);
-            cumul_nodes.push_back(j);
         }
     }
     
@@ -268,6 +273,8 @@ public:
     inline int getdegree(int node){ return g.degree(node); }
 
     BAGraph(int nodeN, int edgeM): n(nodeN), m(edgeM), g(nodeN){
+        g.init_cumulnodes(nodeN, edgeM);
+        
         // make m-node complete graph
         for(int i = 0;i < m;i++){
             g.addnode();
@@ -405,7 +412,7 @@ int main(int argc, char ** argv){
     int m = strtol(argv[2], NULL, 10);
     string cmdstr(argv[3]);
 
-    command_t command;
+    command_t command = CMD_DIST; // pseudo initialization
     if(cmdstr.compare("dist") == 0){
         command = CMD_DIST;
     } else if (cmdstr.compare("corr") == 0){
